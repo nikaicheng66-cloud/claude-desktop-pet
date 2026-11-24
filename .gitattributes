@@ -1,2 +1,2 @@
-# 原样保存每个文件，不转换换行符（.bat / .vbs / .ps1 的换行和编码不能被改动）
+# Store every file exactly as it is, no line-ending conversion (.bat / .vbs / .ps1 line endings and encodings must not change)
 * -text

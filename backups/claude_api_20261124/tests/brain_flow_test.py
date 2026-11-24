@@ -229,12 +229,12 @@ async def unit():
     async def slow_lookup():
         await asyncio.sleep(0.2)
 
-    job = asyncio.create_task(brain._tracked("alas 现在跑得怎么样", slow_lookup()))
+    job = asyncio.create_task(brain._tracked("备份脚本现在跑得怎么样", slow_lookup()))
     await asyncio.sleep(0.05)
     during = brain.state_note(None)
     await job
     check("note: a look-up under way is in her view until it has reported",
-          "你正在查：alas 现在跑得怎么样" in during and "正在查" not in brain.state_note(None), during)
+          "你正在查：备份脚本现在跑得怎么样" in during and "正在查" not in brain.state_note(None), during)
 
     timing.begin()
     timing.mark("heard")
@@ -506,7 +506,7 @@ async def flows(ctx):
         r = await say(ctx, text, quiet=True)
         check(f"the PC's state right now needs a command, so it is a job: {text}", len(started) == 1 and not asked, (started, asked, r))
     reset(agent)
-    r = await say(ctx, "alas 现在跑得怎么样", quiet=True)
+    r = await say(ctx, "备份脚本现在跑得怎么样", quiet=True)
     check("'how is that program doing': looked up read-only", len(asked) == 1 and not started, (asked, started, r))
     reset(agent)
     for text in ("你去睡吧", "小克接着睡", "闭嘴，安静一会儿"):

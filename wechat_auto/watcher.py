@@ -173,9 +173,8 @@ def may_mute() -> bool:
 
 # The user (2026-11-23): 「在放视频或者音乐，会议的时候不准静音」.
 # Sound from these is not a video, music or a meeting: WeChat itself (its message sound), the pet
-# (her voice: the server and the window), the emulator Alas plays the game in.
-NOT_MEDIA = {"weixin.exe", "python.exe", "pythonw.exe", "open-llm-vtuber-electron.exe",
-             "mumunxdevice.exe", "mumuvmmheadless.exe", "mumuplayer.exe", "armouryaudioagent.exe"}
+# (her voice: the server and the window).
+NOT_MEDIA = {"weixin.exe", "python.exe", "pythonw.exe", "open-llm-vtuber-electron.exe", "armouryaudioagent.exe"}
 # The pet listens on the microphone all the time: that is no meeting
 NOT_MEETING = {"python.exe", "pythonw.exe", "open-llm-vtuber-electron.exe", "armouryaudioagent.exe"}
 MEETING_APPS = {"zoom.exe", "ms-teams.exe", "teams.exe", "wemeetapp.exe", "wemeet.exe", "voovmeetingapp.exe",
