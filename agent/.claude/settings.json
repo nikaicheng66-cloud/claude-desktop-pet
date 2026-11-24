@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": ["mcp__windows-mcp"],
+    "deny": ["mcp__windows-mcp__Registry"]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell|mcp__windows-mcp__Shell|mcp__windows-mcp__Powershell-Tool",
+        "hooks": [
+          { "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/tools/guard_bash.py\"", "timeout": 10 }
+        ]
+      }
+    ]
+  },
+  "enableAllProjectMcpServers": true
+}

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="小克">
+<meta name="theme-color" content="#f7f3ee">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon.svg">
+<link rel="apple-touch-icon" href="/icon.svg">
+<title>小克遥控</title>
+<style>
+  :root {
+    --bg: #f7f3ee; --card: #ffffff; --ink: #2b2420; --muted: #8a7f77; --line: #ebe4dc;
+    --accent: #d9774a; --ok: #3f9b6b; --warn: #c9822b; --bad: #c4513f;
+    --me: #d9774a; --she: #f1ebe4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1d1a18; --card: #272320; --ink: #f1ebe4; --muted: #a39890; --line: #3a3430;
+            --she: #332d29; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--ink);
+         font: 15px/1.5 -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+         display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
+  header { padding: 14px 16px 10px; display: flex; align-items: center; gap: 10px; }
+  header h1 { font-size: 20px; margin: 0; flex: 1; letter-spacing: .5px; }
+  .pill { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--card);
+          border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  .on { background: var(--ok); } .off { background: var(--bad); } .mid { background: var(--warn); }
+  main { flex: 1; overflow-y: auto; padding: 0 12px 8px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px; }
+  .card h2 { font-size: 13px; color: var(--muted); font-weight: 600; margin: 0 0 6px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .svc { font-size: 13px; color: var(--muted); }
+  .task-req { font-weight: 600; }
+  .task-meta { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .summary { font-size: 14px; white-space: pre-wrap; }
+  .feed { display: flex; flex-direction: column; gap: 6px; }
+  .msg { max-width: 86%; padding: 8px 12px; border-radius: 16px; white-space: pre-wrap; word-break: break-word; font-size: 14px; }
+  .msg .t { display: block; font-size: 11px; opacity: .65; margin-top: 2px; }
+  .she { align-self: flex-start; background: var(--she); border-bottom-left-radius: 4px; }
+  .me { align-self: flex-end; background: var(--me); color: #fff; border-bottom-right-radius: 4px; }
+  .empty { color: var(--muted); font-size: 13px; text-align: center; padding: 10px; }
+  button { font: inherit; border: 0; border-radius: 12px; padding: 9px 14px; cursor: pointer; }
+  .btn { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+  .btn-accent { background: var(--accent); color: #fff; }
+  .btn-bad { background: transparent; color: var(--bad); border: 1px solid var(--bad); }
+  .quick { display: flex; gap: 6px; overflow-x: auto; padding: 0 12px 8px; }
+  .quick button { flex: none; font-size: 13px; padding: 6px 12px; }
+  footer { padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--line); }
+  .compose { display: flex; gap: 8px; }
+  textarea { flex: 1; resize: none; font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line);
+             border-radius: 14px; padding: 9px 12px; height: 44px; max-height: 120px; }
+  .toast { position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%); background: var(--ink); color: var(--bg);
+           padding: 8px 14px; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 86%; }
+  .toast.show { opacity: .92; }
+  #login { padding: 40px 20px; display: none; }
+  #login input { width: 100%; font: inherit; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line);
+                 background: var(--card); color: var(--ink); margin: 10px 0; }
+</style>
+</head>
+<body>
+<div id="login">
+  <h1>小克遥控</h1>
+  <p class="svc">第一次使用，输入电脑上 <b>remote\token.txt</b> 里的口令。只需要输一次。</p>
+  <input id="tok" placeholder="口令" autocomplete="off">
+  <button class="btn-accent" onclick="saveToken()">进入</button>
+</div>
+
+<div id="app" style="display:none; flex:1; display:none; flex-direction:column; min-height:0">
+  <header>
+    <h1>小克</h1>
+    <span class="pill" id="state"><span class="dot mid"></span>连接中</span>
+  </header>
+  <main id="main">
+    <div class="card">
+      <h2>运行状态</h2>
+      <div class="svc" id="svc">—</div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn-accent" id="startBtn" onclick="startPet()">开启小克</button>
+        <button class="btn-bad" id="stopBtn" onclick="stopPet()">关闭小克</button>
+      </div>
+    </div>
+    <div class="card" id="taskCard" style="display:none">
+      <h2>正在做</h2>
+      <div class="task-req" id="taskReq"></div>
+      <div class="task-meta" id="taskMeta"></div>
+    </div>
+    <div class="card">
+      <h2>她现在的情况</h2>
+      <div class="summary" id="summary">—</div>
+    </div>
+    <div class="card">
+      <h2>最近的对话</h2>
+      <div class="feed" id="feed"><div class="empty">还没有对话</div></div>
+    </div>
+  </main>
+  <div class="quick">
+    <button class="btn" onclick="send('现在进度怎么样？')">进度怎么样</button>
+    <button class="btn" onclick="send('小克停一下')">停一下</button>
+    <button class="btn" onclick="send('今天投了几家？')">今天投了几家</button>
+    <button class="btn" onclick="send('还有什么需要我做的吗？')">有什么要我做</button>
+  </div>
+  <footer>
+    <div class="compose">
+      <textarea id="input" placeholder="给小克发指令……"></textarea>
+      <button class="btn-accent" onclick="send()">发送</button>
+    </div>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+let token = '';
+try { token = localStorage.getItem('deskpetToken') || ''; } catch (e) {}
+const $ = id => document.getElementById(id);
+
+function showApp() { $('login').style.display = 'none'; $('app').style.display = 'flex'; refresh(); }
+function showLogin() { $('app').style.display = 'none'; $('login').style.display = 'block'; }
+function saveToken() {
+  token = $('tok').value.trim();
+  try { localStorage.setItem('deskpetToken', token); } catch (e) {}
+  showApp();
+}
+function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2600); }
+
+async function api(path, body) {
+  const r = await fetch(path, {
+    method: body ? 'POST' : 'GET',
+    headers: { 'X-Token': token, 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (r.status === 401) { showLogin(); throw new Error('token'); }
+  return r.json();
+}
+
+function fmtTime(t) {
+  const d = new Date(t * 1000);
+  return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+}
+function esc(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+
+let lastFeedKey = '';
+async function refresh() {
+  let s;
+  try { s = await api('/api/status'); }
+  catch (e) { if (e.message !== 'token') $('state').innerHTML = '<span class="dot off"></span>连不上电脑'; return; }
+  const running = s.server && s.client;
+  let label, cls;
+  if (s.starting) { label = '启动中：' + s.starting; cls = 'mid'; }
+  else if (running && s.pet && s.pet.task) { label = '在干活'; cls = 'on'; }
+  else if (running && s.pet && s.pet.asleep) { label = '不听模式'; cls = 'mid'; }
+  else if (running) { label = '空闲'; cls = 'on'; }
+  else if (s.server || s.client) { label = '部分运行'; cls = 'mid'; }
+  else { label = '已关闭'; cls = 'off'; }
+  $('state').innerHTML = `<span class="dot ${cls}"></span>${esc(label)}`;
+  const d = (ok, n) => `<span class="dot ${ok ? 'on' : 'off'}"></span>${n}`;
+  $('svc').innerHTML = [d(s.server, '大脑'), d(s.client, '桌面窗口'), d(s.voice, '声音'), d(s.ollama, '本地模型')].join('　');
+  $('startBtn').style.display = running ? 'none' : '';
+  $('stopBtn').style.display = (s.server || s.client) ? '' : 'none';
+
+  const p = s.pet;
+  if (p && p.task) {
+    $('taskCard').style.display = '';
+    $('taskReq').textContent = p.task.request;
+    $('taskMeta').textContent = `已经 ${p.task.minutes} 分钟` + (p.task.progress ? `　${p.task.progress}` : '');
+  } else { $('taskCard').style.display = 'none'; }
+  $('summary').textContent = p ? (p.summary || '—') : (running ? '读取中…' : '小克没在运行。');
+
+  const feed = (p && p.feed) || [];
+  const key = feed.length ? feed[feed.length - 1].t + feed.length : '';
+  if (key !== lastFeedKey) {
+    lastFeedKey = key;
+    const box = $('feed');
+    box.innerHTML = feed.length ? feed.slice(-40).map(m => {
+      const mine = m.who.startsWith('你');
+      return `<div class="msg ${mine ? 'me' : 'she'}">${esc(m.text)}<span class="t">${esc(m.who)} · ${fmtTime(m.t)}</span></div>`;
+    }).join('') : '<div class="empty">还没有对话</div>';
+    const main = $('main'); main.scrollTop = main.scrollHeight;
+  }
+}
+
+async function send(text) {
+  const el = $('input');
+  text = (text || el.value).trim();
+  if (!text) return;
+  try {
+    const r = await api('/api/say', { text });
+    toast(r.message || (r.ok ? '发过去了' : '没发成'));
+    if (r.ok && el.value.trim() === text) el.value = '';
+    setTimeout(refresh, 1500);
+  } catch (e) { if (e.message !== 'token') toast('发送失败，连不上电脑'); }
+}
+async function startPet() { try { toast((await api('/api/start', {})).message); } catch (e) {} setTimeout(refresh, 3000); }
+async function stopPet() {
+  if (!confirm('关闭小克？正在做的事也会停下。')) return;
+  try { toast((await api('/api/stop', {})).message); } catch (e) {}
+  setTimeout(refresh, 2000);
+}
+$('input').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } });
+
+if (token) showApp(); else showLogin();
+setInterval(() => { if (token && !document.hidden) refresh(); }, 4000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && token) refresh(); });
+</script>
+</body>
+</html>

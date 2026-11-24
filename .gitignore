@@ -1,0 +1,46 @@
+# 小克（claude-desktop-pet）顶层仓库：管 wechat_auto、launcher、agent、remote 等没有自己仓库的部分。
+
+# 这两个文件夹各有自己的 git 仓库，在各自仓库里提交
+/Open-LLM-VTuber/
+/Open-LLM-VTuber-Web/
+
+# 第三方、体积大
+/GPT-SoVITS-*/
+/installers/
+
+# 她运行时产生的内容和私人数据
+/audio_notes/
+/agent/reports/
+/agent/screen/
+/agent/pictures/
+/agent/intent_log.jsonl
+/agent/cloud_usage.json
+/wechat_auto/state/
+/wechat_auto/samples/
+
+# 密钥
+/remote/token.txt
+
+# 日志、缓存
+*.log
+/launcher/progress.txt
+__pycache__/
+*.pyc
+
+# assets 只收文字和脚本，不收音频、图片、画稿源文件
+/assets/**/*.wav
+/assets/**/*.mp3
+/assets/**/*.png
+/assets/**/*.psd
+/assets/**/*.cmo3
+
+# backups 是手工留的旧文件副本，只收里面的测试脚本
+/backups/*/*
+!/backups/*/tests/
+
+# 公开版：这些在本机生成，不上传
+/outside/startup/
+/outside/desktop/
+/outside/shortcuts.txt
+/wechat_auto/target_name.npy
+/backups/*/tests/*.jsonl

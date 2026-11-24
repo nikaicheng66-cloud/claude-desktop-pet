@@ -1,0 +1,34 @@
+{
+    "hooks":  {
+                  "Notification":  [
+                                       {
+                                           "hooks":  [
+                                                         {
+                                                             "command":  "curl.exe -s -m 3 -X POST -H \"Content-Type: application/json\" --data-binary @- http://127.0.0.1:12393/deskpet/hook || exit 0",
+                                                             "type":  "command"
+                                                         }
+                                                     ]
+                                       }
+                                   ],
+                  "Stop":  [
+                               {
+                                   "hooks":  [
+                                                 {
+                                                     "command":  "curl.exe -s -m 3 -X POST -H \"Content-Type: application/json\" --data-binary @- http://127.0.0.1:12393/deskpet/hook || exit 0",
+                                                     "type":  "command"
+                                                 }
+                                             ]
+                               }
+                           ],
+                  "UserPromptSubmit":  [
+                                           {
+                                               "hooks":  [
+                                                             {
+                                                                 "command":  "curl.exe -s -m 3 -X POST -H \"Content-Type: application/json\" --data-binary @- http://127.0.0.1:12393/deskpet/hook || exit 0",
+                                                                 "type":  "command"
+                                                             }
+                                                         ]
+                                           }
+                                       ]
+              }
+}

@@ -1,0 +1,57 @@
+﻿<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Claude 正在启动</title>
+<hta:application id="splash" applicationname="DeskPetSplash" border="none" caption="no"
+  showintaskbar="no" sysmenu="no" scroll="no" singleinstance="yes" innerborder="no" contextmenu="no" />
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #fbf6ef; font-family: "Microsoft YaHei", sans-serif; }
+  #box { padding: 22px 26px; border: 1px solid #e3d3bd; height: 100%; box-sizing: border-box; }
+  #title { font-size: 17px; color: #5b4636; margin-bottom: 4px; }
+  #step { font-size: 13px; color: #8a7462; height: 20px; }
+  #track { margin-top: 14px; height: 10px; background: #efe3d3; border-radius: 5px; overflow: hidden; }
+  #bar { height: 10px; width: 0%; background: #e8913c; border-radius: 5px; }
+  #pct { margin-top: 8px; font-size: 12px; color: #a08c7a; text-align: right; }
+</style>
+<script type="text/javascript">
+  var fso, progressFile, lastPct = 0;
+  function poll() {
+    try {
+      if (!fso.FileExists(progressFile)) return;
+      var f = fso.OpenTextFile(progressFile, 1, false, -1);  // read, UTF-16
+      var line = f.AtEndOfStream ? "" : f.ReadAll();
+      f.Close();
+      line = line.replace(/[\r\n]/g, "").replace(/^\s+|\s+$/g, "");
+      if (line === "close") { window.close(); return; }
+      var i = line.indexOf("|");
+      if (i < 0) return;
+      var pct = parseInt(line.substring(0, i), 10);
+      if (!isNaN(pct) && pct >= lastPct) lastPct = pct;
+      document.getElementById("bar").style.width = lastPct + "%";
+      document.getElementById("pct").innerText = lastPct + "%";
+      document.getElementById("step").innerText = line.substring(i + 1);
+    } catch (e) { /* file busy while being written: try again next tick */ }
+  }
+  window.onload = function () {
+    window.resizeTo(380, 150);
+    window.moveTo((screen.availWidth - 380) / 2, (screen.availHeight - 150) / 2);
+    fso = new ActiveXObject("Scripting.FileSystemObject");
+    // folder of this .hta, from its own file:/// address (works in every document mode)
+    var hta = decodeURIComponent(document.location.pathname).replace(/\//g, "\\");
+    if (hta.charAt(0) === "\\" && hta.charAt(2) === ":") hta = hta.substring(1);
+    progressFile = fso.GetParentFolderName(hta) + "\\progress.txt";
+    poll();
+    window.setInterval(poll, 300);
+  };
+</script>
+</head>
+<body>
+  <div id="box">
+    <div id="title">Claude 正在起床……</div>
+    <div id="step">准备中</div>
+    <div id="track"><div id="bar"></div></div>
+    <div id="pct">0%</div>
+  </div>
+</body>
+</html>
